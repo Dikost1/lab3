@@ -4,11 +4,13 @@ using UnityEngine;
 
 public class MouseLook : MonoBehaviour
 {
-    public enum RotationAxes {
+    public enum RotationAxes
+    {
         MouseXAndY = 0,
         MouseX = 1,
-        MouseY = 2
+        MouseY = 2,
     }
+
     public RotationAxes axes = RotationAxes.MouseXAndY;
 
     public float sensitivityHor = 9.0f;
@@ -17,38 +19,60 @@ public class MouseLook : MonoBehaviour
     public float minimumVert = -45.0f;
     public float maximumVert = 45.0f;
 
-    private float verticalRot = 0;
+    [Header("Options")]
+    public bool invertY = false;
 
-    void Start() {
+    private float verticalRot = 0f;
+    private float horizontalRot = 0f;
+
+    void Start()
+    {
         Rigidbody body = GetComponent<Rigidbody>();
-        if (body != null) {
+        if (body != null)
+        {
             body.freezeRotation = true;
+        }
+
+        // Инициализируем углы из текущего поворота, чтобы не было "скачка"
+        Vector3 euler = transform.localEulerAngles;
+        horizontalRot = euler.y;
+        verticalRot = euler.x;
+        if (verticalRot > 180f)
+        {
+            verticalRot -= 360f;
         }
     }
 
     void Update()
     {
-        if (axes == RotationAxes.MouseX) {
+        float mouseX = Input.GetAxis("Mouse X") * sensitivityHor;
+        float mouseY = Input.GetAxis("Mouse Y") * sensitivityVert;
+        if (invertY)
+        {
+            mouseY = -mouseY;
+        }
+
+        if (axes == RotationAxes.MouseX)
+        {
             // Вращение вокруг оси Y (горизонтальное)
-            transform.Rotate(0, Input.GetAxis("Mouse X") * sensitivityHor, 0);
+            horizontalRot += mouseX;
+            transform.localRotation = Quaternion.Euler(0f, horizontalRot, 0f);
+            return;
         }
-        else if (axes == RotationAxes.MouseY) {
+
+        if (axes == RotationAxes.MouseY)
+        {
             // Вращение вокруг оси X (вертикальное)
-            verticalRot -= Input.GetAxis("Mouse Y") * sensitivityVert;
+            verticalRot -= mouseY;
             verticalRot = Mathf.Clamp(verticalRot, minimumVert, maximumVert);
-
-            float horizontalRot = transform.localEulerAngles.y;
-            transform.localEulerAngles = new Vector3(verticalRot, horizontalRot, 0);
+            transform.localRotation = Quaternion.Euler(verticalRot, horizontalRot, 0f);
+            return;
         }
-        else {
-            // Комбинированное вращение
-            verticalRot -= Input.GetAxis("Mouse Y") * sensitivityVert;
-            verticalRot = Mathf.Clamp(verticalRot, minimumVert, maximumVert);
 
-            float delta = Input.GetAxis("Mouse X") * sensitivityHor;
-            float horizontalRot = transform.localEulerAngles.y + delta;
-
-            transform.localEulerAngles = new Vector3(verticalRot, horizontalRot, 0);
-        }
+        // Комбинированное вращение
+        horizontalRot += mouseX;
+        verticalRot -= mouseY;
+        verticalRot = Mathf.Clamp(verticalRot, minimumVert, maximumVert);
+        transform.localRotation = Quaternion.Euler(verticalRot, horizontalRot, 0f);
     }
 }

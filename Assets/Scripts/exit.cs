@@ -1,16 +1,18 @@
 using UnityEngine;
 
-public class exit : MonoBehaviour
+public class ExitGame : MonoBehaviour
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    // Метод для кнопки "Выход"
+    public void QuitGame()
     {
-        
-    }
+        Debug.Log("Выход из игры");
 
-    // Update is called once per frame
-    void Update()
-    {
-        
+        // Если игра запущена как билд
+        Application.Quit();
+
+        // Если запущено в редакторе Unity
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#endif
     }
 }
